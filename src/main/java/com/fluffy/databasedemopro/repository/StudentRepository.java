@@ -1,6 +1,8 @@
 package com.fluffy.databasedemopro.repository;
 
 import com.fluffy.databasedemopro.entity.Course;
+import com.fluffy.databasedemopro.entity.Passport;
+import com.fluffy.databasedemopro.entity.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,74 +12,79 @@ import javax.persistence.EntityManager;
 @Repository//to let know it's a repository
 @Transactional//this is to work methods as transactions
 
-public class CourseRepository {
+public class StudentRepository {
     @Autowired
     EntityManager entityManager;//what we need in a JPA repo to communicate with database
 
-    public Course findById(Long id){
-      return   entityManager.find(Course.class,id);//(the return type,primary key)
+    public Student findById(Long id){
+      return   entityManager.find(Student.class,id);//(the return type,primary key)
     }
 
     public void deleteById(Long id){
-        Course course=findById(id);
-        entityManager.remove(course);
+        Student student=findById(id);
+        entityManager.remove(student);
     }
 
 
-    public Course save(Course course){//for both insert() and update()
-        if(course.getId()==null){
-            entityManager.persist(course);//to insert
+    public Student save(Student student){//for both insert() and update()
+        if(student.getId()==null){
+            entityManager.persist(student);//to insert
         }else{
-            entityManager.merge(course);//to update
+            entityManager.merge(student);//to update
         }
-        return course;
+        return student;
     }
 
-    public void playWithEntityManager(){
-//        Course course=new Course("web services in 100 steps");
-//        entityManager.persist(course);
-//        course.setName("web services in 100 steps-updated");//we don't need "entityManager.persist(course);" after this, because of "@Transactional"
-//        //this is recognized as a transaction and EM keeps track of things (modification ) and persist to database automatically.See datbase after  running it
+
+    public void someOperationToUndertandPersistanceContext(){//ref-071 Step 27 - Transaction_ Entity Manager and Persistence Context
+        //Database operation 1 -Retrieve student
+        Student student=entityManager.find(Student.class,20001L);
+        //Persistence Context(student)
 
 
-//        Course course1=new Course("web services in 100 steps");
-//       entityManager.persist(course1);
-//       entityManager.flush();
-//
-//
-//        Course course2=new Course("React in 100 steps");
-//        entityManager.persist(course2);
-//        entityManager.flush();
-//
-//
-//        Course course3=new Course("Angular in 100 steps");
-//        entityManager.persist(course3);
-//        entityManager.flush();//track and persist everything until this
-//
-//
-//        entityManager.detach(course1);//untrack specfied entity (
-//        course1.setName("web services in 100 steps-updated");
-//
-//
-//        //entityManager.clear();//untrack all entities after this
-//
-//        course2.setName("React in 100 steps-updated");
-//        course3.setName("Angular in 100 steps-updated");
-//               entityManager.refresh(course3);
+        //Database Operation 2-Retrieve passport
+        Passport passport=student.getPassport();
+        //Persitence Context(student,passport)
+
+        //Datbase Operstion 3-update passport
+        passport.setNumber("E123456");
+        //Persistence Context(student,passport++)
+
+        //Database operation 4-update student
+        student.setName("Ranga-updated");
+        //Persistence Context(student,passport)
 
 
-//        Course course=new Course("web services in 100 steps");
-//        course.setName(null);
-//        entityManager.persist(course);
-//        entityManager.flush();
+    }
+
+    public void saveStudentWithPassport(){
+
+        Passport passport=new Passport("Z123456");
+
+        entityManager.persist(passport);//here if we didn't save passport first and saved student instead we would get transient error
+        //because they have one to one relationship which is owned by student entity
+
+        Student student=new Student("Kim");
+        student.setPassport(passport);
+
+        entityManager.persist(student);
 
 
-        Course course1=new Course("web services in 100 steps");
-       entityManager.persist(course1);
-       entityManager.flush();
 
-      Course course2=findById(1003L);
-      course2.setName("JPA 52-updated");
+
+    }
+
+    public void saveStudentAndCourse(Student student, Course course){
+        student.addCourses(course);
+        course.setStudents(student);
+
+
+
+        entityManager.persist(student);//doesn't the order matter?shouldn't course be first in order to save to db so student can refer
+
+        entityManager.persist(course);
+
+
 
 
     }
@@ -85,15 +92,8 @@ public class CourseRepository {
 }
 
 //=========================NOTE===============================
-//we don't need @Transactional for findById() but for delete() we need it since it makes a change
-//in save() persist-insert merge-update
-
-//flush()-everything uptil this is persisted
-//detach(course)-the course entity is detached from here afterwards the changes won't be tracked
-//clear()-same as detach() but happens to every object rather than one particular object
 
 
 
-//========================ref===================
-//deleteById(int id),@Transactional-050 Step 06 - Writing a deleteByID method to delete an Entity
-//save  save(Course course)-052 Step 08 - Writing a save method to update and insert an Entity
+//========================ref=============================
+//1.068 Step 24 - OneToOne Mapping - Insert Student with Passport
