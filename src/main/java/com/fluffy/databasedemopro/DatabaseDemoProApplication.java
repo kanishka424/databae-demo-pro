@@ -1,9 +1,8 @@
 package com.fluffy.databasedemopro;
 
-import com.fluffy.databasedemopro.entity.Course;
-import com.fluffy.databasedemopro.entity.Review;
-import com.fluffy.databasedemopro.entity.Student;
+import com.fluffy.databasedemopro.entity.*;
 import com.fluffy.databasedemopro.repository.CourseRepository;
+import com.fluffy.databasedemopro.repository.EmployeeRepository;
 import com.fluffy.databasedemopro.repository.StudentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,19 +32,28 @@ public class DatabaseDemoProApplication  implements CommandLineRunner  {
 	@Autowired
 	StudentRepository studentRepository;
 
+
+	@Autowired
+	EmployeeRepository employeeRepository;
+
 	Logger logger= LoggerFactory.getLogger(this.getClass());
 
 	@Override
 	public void run(String... args) throws Exception {
 
 
-		studentRepository.saveStudentAndCourse(new Student("Jake"),new Course("MS in 100 steps"));
-		List<Review> reviews=new ArrayList<>();
 
-		reviews.add(new Review("5","Excellent"));
-		reviews.add(new Review("5","Hats Off"));
-		studentRepository.saveStudentWithPassport();
-		courseRepository.addReviewForCourse(1003L,reviews);
+		employeeRepository.insert(new PartTimeEmployee("Jill", new BigDecimal("50")));
+		employeeRepository.insert(new FullTimeEmployee("Jack", new BigDecimal("10000")));
+
+		logger.info("All Employees -> {}", employeeRepository.retrieveAllEmployees());
+//		studentRepository.saveStudentAndCourse(new Student("Jake"),new Course("MS in 100 steps"));
+//		List<Review> reviews=new ArrayList<>();
+//
+//		reviews.add(new Review("5","Excellent"));
+//		reviews.add(new Review("5","Hats Off"));
+//		studentRepository.saveStudentWithPassport();
+//		courseRepository.addReviewForCourse(1003L,reviews);
 
 
 
